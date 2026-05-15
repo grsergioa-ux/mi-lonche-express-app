@@ -9,10 +9,16 @@ export const viewport = {
   maximumScale: 1
 };
 
+import { CartProvider } from "./context/CartContext";
+
 export default function RootLayout({ children }) {
   return (
-    <html lang="es">
-      <body>{children}</body>
+    <html>
+      <body>
+        <CartProvider>
+          {children}
+        </CartProvider>
+      </body>
     </html>
   );
 }
