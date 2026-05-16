@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
 
@@ -8,21 +9,21 @@ export default function Menu() {
   const products = [
     {
       id: 1,
-      name: "Hamburguesa Clásica",
-      price: 89,
-      image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd"
+      name: "Lonche Clásico",
+      price: 50,
+      image: "/images/Lonche_Clasico.jpg"
     },
     {
       id: 2,
-      name: "Hot Dog Especial",
-      price: 59,
-      image: "https://images.unsplash.com/photo-1550547660-d9450f859349"
+      name: "Lonche Saludable",
+      price: 75,
+      image: "/images/Lonche_Saludable.jpg"
     },
     {
       id: 3,
-      name: "Papas con Queso",
-      price: 49,
-      image: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092"
+      name: "Lonche Premium",
+      price: 100,
+      image: "/images/Lonche_Premium.jpg"
     }
   ];
 
@@ -38,8 +39,8 @@ export default function Menu() {
       {/* Header */}
       <div
         style={{
-          background: "#d62828",
-          color: "white",
+          background: "#FFFFFF",
+          color: "black",
           padding: "16px",
           fontSize: "20px",
           fontWeight: "bold",
@@ -47,12 +48,42 @@ export default function Menu() {
           top: 0,
           display: "flex",
           justifyContent: "space-between",
+          alignItems: "center",
           cursor: "pointer"
         }}
         onClick={() => router.push("/cart")}
       >
-        <span>Mi Lonche Express 🍔</span>
-        <span>🛒 {cart.length}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <Image
+            src="/icon-192.png"
+            alt="Icono Mi Lonche"
+            width={40}
+            height={40}
+            style={{ borderRadius: 8 }}
+          />
+          <span>Mi Lonche Express - Fine Bites & Catering</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span>🛒 {cart.length}</span>
+          {cart.length > 0 && (
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                router.push("/cart");
+              }}
+              style={{
+                background: "#000000",
+                color: "white",
+                border: "none",
+                padding: "10px 14px",
+                borderRadius: "8px",
+                cursor: "pointer"
+              }}
+            >
+              Ir al Carrito
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Lista */}
@@ -74,7 +105,7 @@ export default function Menu() {
               display: "flex",
               gap: 15,
               alignItems: "center",
-              background: "white"
+              background: "#FFC72C"
             }}
           >
             
@@ -83,8 +114,8 @@ export default function Menu() {
               src={p.image}
               alt={p.name}
               style={{
-                width: 80,
-                height: 80,
+                width: 120,
+                height: 120,
                 objectFit: "cover",
                 borderRadius: 10
               }}
@@ -99,7 +130,7 @@ export default function Menu() {
                 <button
                   onClick={() => addToCart(p)}
                   style={{
-                    background: "#f77f00",
+                    background: "#000000",
                     color: "white",
                     border: "none",
                     padding: "10px",

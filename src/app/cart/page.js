@@ -165,7 +165,7 @@ export default function Cart() {
     });
 
     // Construir mensaje formateado profesional
-    const message = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    const message = `
 🍱 *MI LONCHE EXPRESS*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -218,9 +218,9 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
   };
 
   return (
-    <div style={{ padding: 16, paddingBottom: 120, background: "#f5f5f5", minHeight: "100vh" }}>
+    <div style={{ padding: 16, paddingBottom: 120, background: "#f5f5f5", minHeight: "100vh", fontFamily: "sans-serif", color: "black" }}>
 
-      <h2>🛒 Tu pedido</h2>
+      <h2 style={{ fontSize: 24, fontWeight: "bold", marginBottom: 18 }}>🛒 Tu pedido</h2>
 
       {/* 🛍️ PRODUCTOS */}
       {grouped.map((item) => (
@@ -228,29 +228,53 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
           display: "flex",
           gap: 10,
           marginBottom: 10,
-          background: "#fff",
+          background: "#DA291C",
           padding: 10,
           borderRadius: 12,
           boxShadow: "0 4px 10px rgba(0,0,0,0.05)"
         }}>
           <img
             src={item.image}
-            style={{ width: 70, height: 70, objectFit: "cover", borderRadius: 10 }}
+            style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 10 }}
           />
 
           <div style={{ flex: 1 }}>
             <b>{item.name}</b>
             <p>${item.price} x {item.qty}</p>
 
-            <button onClick={() => decreaseFromCart(item.id)}>-</button>
-            <span> {item.qty} </span>
-            <button onClick={() => addToCart(item)}>+</button>
+            <button
+            onClick={() => decreaseFromCart(item.id)}
+            style={{
+              background: "#000000",
+              color: "white",
+              border: "none",
+              padding: "8px 12px",
+              borderRadius: 8,
+              cursor: "pointer"
+            }}
+          >
+            -
+          </button>
+          <span style={{ fontWeight: "bold", minWidth: 26, textAlign: "center" }}>{item.qty}</span>
+          <button
+            onClick={() => addToCart(item)}
+            style={{
+              background: "#000000",
+              color: "white",
+              border: "none",
+              padding: "8px 12px",
+              borderRadius: 8,
+              cursor: "pointer"
+            }}
+          >
+            +
+          </button>
           </div>
         </div>
       ))}
 
       {/* 🧾 CLIENTE */}
-      <h3>👤 Datos del cliente</h3>
+      <h3 style={{ fontSize: 18, fontWeight: "bold", marginTop: 24, marginBottom: 10 }}>👤 Datos del cliente</h3>
 
       <input
         placeholder="Nombre"
@@ -269,7 +293,7 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
       {!isValidPhone && phone && <p style={{ color: "red" }}>Celular inválido</p>}
 
       {/* 🏫 ESCUELA */}
-      <h3>🏫 Entrega</h3>
+      <h3 style={{ fontSize: 18, fontWeight: "bold", marginTop: 20, marginBottom: 10 }}>🏫 Entrega</h3>
 
       <select
         value={selectedSchool}
@@ -323,7 +347,7 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
       )}
 
       {/* 📝 INDICACIONES */}
-      <h3>📝 Indicaciones especiales (opcional)</h3>
+      <h3 style={{ fontSize: 18, fontWeight: "bold", marginTop: 20, marginBottom: 10 }}>📝 Indicaciones especiales (opcional)</h3>
       <textarea
         placeholder="Ej: Sin cebolla, con extra salsa..."
         value={indicaciones}
@@ -350,7 +374,7 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
         padding: 16,
         boxShadow: "0 -2px 10px rgba(0,0,0,0.1)"
       }}>
-        <h3>Total: ${total.toFixed(2)}</h3>
+        <h3 style={{ fontSize: 18, fontWeight: "bold", marginBottom: 12 }}>Total: ${total.toFixed(2)}</h3>
 
         <button
           onClick={handleWhatsApp}
@@ -358,7 +382,7 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
           style={{
             width: "100%",
             padding: 14,
-            background: isFormValid && !isSaving ? "#25D366" : "#ccc",
+            background: isFormValid && !isSaving ? "#000000" : "#ccc",
             color: "white",
             border: "none",
             borderRadius: 10,
@@ -381,15 +405,18 @@ const input = {
   padding: 10,
   marginBottom: 10,
   borderRadius: 8,
-  border: "1px solid #ccc"
+  border: "1px solid #ccc",
+  fontFamily: "inherit"
 };
 
 const btnAdd = {
   width: "100%",
   padding: 10,
-  background: "#0077b6",
+  background: "#000000",
   color: "white",
   border: "none",
   borderRadius: 8,
-  marginBottom: 10
+  marginBottom: 10,
+  cursor: "pointer",
+  fontWeight: "bold"
 };
