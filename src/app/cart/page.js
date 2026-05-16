@@ -199,7 +199,7 @@ export default function Cart() {
     // Construir mensaje formateado profesional
     const message = `
 🍱 *MI LONCHE EXPRESS*
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━
 
 📋 *INFORMACIÓN DEL CLIENTE*
 
@@ -219,7 +219,7 @@ ${indicaciones ? `📝 *Notas especiales:*
 ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 💰 *TOTAL A PAGAR:* $${total.toFixed(2)}
 ⏰ *Hora del pedido:* ${hora}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━
 
 ✅ Gracias por tu pedido. Nos pondremos en contacto pronto.`;
 
