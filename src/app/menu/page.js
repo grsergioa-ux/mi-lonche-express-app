@@ -34,7 +34,7 @@ export default function Menu() {
   };
 
   return (
-    <div style={{ fontFamily: "sans-serif", background: "#f5f5f5", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "sans-serif", background: "#DA291C", minHeight: "100vh",borderRadius: "8px" }}>
       
       {/* Header */}
       <div
@@ -57,11 +57,14 @@ export default function Menu() {
           <Image
             src="/icon-192.png"
             alt="Icono Mi Lonche"
-            width={40}
-            height={40}
+            width={70}
+            height={80}
             style={{ borderRadius: 8 }}
           />
-          <span>Mi Lonche Express - Fine Bites & Catering</span>
+          <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
+            <span style={{ fontWeight: "bold" }}>Mi Lonche Express</span>
+            <span style={{ fontSize: 14 }}>Fine Bites & Catering</span>
+          </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span>🛒 {cart.length}</span>
@@ -150,13 +153,33 @@ export default function Menu() {
                     marginTop: 10
                   }}
                 >
-                  <button onClick={() => decreaseFromCart(p.id)}>
+                  <button
+                    onClick={() => decreaseFromCart(p.id)}
+                    style={{
+                      background: "#000000",
+                      color: "white",
+                      border: "none",
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      cursor: "pointer"
+                    }}
+                  >
                     -
                   </button>
 
-                  <span>{getQuantity(p.id)}</span>
+                  <span style={{ fontWeight: "bold" }}>{getQuantity(p.id)}</span>
 
-                  <button onClick={() => addToCart(p)}>
+                  <button
+                    onClick={() => addToCart(p)}
+                    style={{
+                      background: "#000000",
+                      color: "white",
+                      border: "none",
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      cursor: "pointer"
+                    }}
+                  >
                     +
                   </button>
                 </div>

@@ -12,6 +12,10 @@ import {
   deleteDoc,
   getDocs,
 } from "firebase/firestore";
+import {
+  FIRESTORE_COLLECTIONS,
+  ACTIVE_FIRESTORE_COLLECTIONS,
+} from "../../lib/firestoreCollections";
 
 export default function AdminPedidos() {
   const [pedidos, setPedidos] = useState([]);
@@ -46,7 +50,7 @@ export default function AdminPedidos() {
     if (!confirmacion2) return;
 
     try {
-      const colecciones = ["pedidos", "escuelas"];
+      const colecciones = ACTIVE_FIRESTORE_COLLECTIONS;
 
       for (const col of colecciones) {
         const snapshot = await getDocs(collection(db, col));

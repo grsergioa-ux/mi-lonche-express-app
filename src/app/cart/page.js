@@ -1,9 +1,17 @@
 "use client";
 import { useCart } from "../context/CartContext";
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "../../firebase";
-import { doc, serverTimestamp, runTransaction } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  doc,
+  serverTimestamp,
+  runTransaction,
+} from "firebase/firestore";
+import { FIRESTORE_COLLECTIONS, FIRESTORE_DOCS } from "../../lib/firestoreCollections";
 
 export default function Cart() {
   const { cart, addToCart, decreaseFromCart, clearCart } = useCart();
@@ -15,10 +23,8 @@ export default function Cart() {
   const [indicaciones, setIndicaciones] = useState("");
 
   // 🏫 ESCUELAS
-  const [schools, setSchools] = useState([
-    { name: "Primaria Benito Juárez", address: "Calle 1" },
-    { name: "Secundaria Técnica 5", address: "Calle 2" }
-  ]);
+  // Inicial vacío: las escuelas se pueden añadir desde la UI
+  const [schools, setSchools] = useState([]);
 
   const [selectedSchool, setSelectedSchool] = useState("");
   const [newSchool, setNewSchool] = useState("");
@@ -28,9 +34,21 @@ export default function Cart() {
   const savingRef = useRef(false);
 
   // 🔍 Obtener escuela seleccionada
-  const selectedSchoolData = schools.find(
-    (s) => s.name === selectedSchool
-  );
+  const selectedSchoolData = schools.find((s) => s.name === selectedSchool);
+
+  useEffect(() => {
+    const loadSchools = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, FIRESTORE_COLLECTIONS.ESCUELAS));
+        const savedSchools = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setSchools(savedSchools);
+      } catch (error) {
+        console.error("Error cargando escuelas desde Firestore:", error);
+      }
+    };
+
+    loadSchools();
+  }, []);
 
   // 🔥 AGRUPAR PRODUCTOS
   const grouped = cart.reduce((acc, item) => {
@@ -49,10 +67,7 @@ export default function Cart() {
   const isValidName = /^[a-zA-Z0-9\s]+$/.test(name);
   const isValidPhone = /^[0-9]{10,12}$/.test(phone);
 
-  const hasSchool =
-    selectedSchool && selectedSchool !== "new"
-      ? Boolean(selectedSchool)
-      : Boolean(newSchool && newAddress);
+  const hasSchool = Boolean(selectedSchoolData);
 
   const isFormValid =
     grouped.length > 0 &&
@@ -61,12 +76,29 @@ export default function Cart() {
     hasSchool;
 
   // ➕ AGREGAR ESCUELA
-  const addSchool = () => {
-    if (newSchool && newAddress) {
-      setSchools([...schools, { name: newSchool, address: newAddress }]);
+  const isNewSchoolValid = newSchool.trim().length > 0 && newAddress.trim().length > 0;
+
+  const addSchool = async () => {
+    if (!isNewSchoolValid) return;
+
+    try {
+      const schoolRef = await addDoc(collection(db, FIRESTORE_COLLECTIONS.ESCUELAS), {
+        name: newSchool,
+        address: newAddress,
+      });
+
+      const savedSchool = {
+        id: schoolRef.id,
+        name: newSchool,
+        address: newAddress,
+      };
+
+      setSchools((prevSchools) => [...prevSchools, savedSchool]);
       setSelectedSchool(newSchool);
       setNewSchool("");
       setNewAddress("");
+    } catch (error) {
+      console.error("Error guardando escuela en Firestore:", error);
     }
   };
 
@@ -88,7 +120,7 @@ export default function Cart() {
 
     try {
       const orderId = await runTransaction(db, async (tx) => {
-        const counterRef = doc(db, "counters", "orders");
+        const counterRef = doc(db, FIRESTORE_COLLECTIONS.CONTADORES, FIRESTORE_DOCS.ORDENES);
         const counterSnap = await tx.get(counterRef);
         let seq = 1;
         if (!counterSnap.exists()) {
@@ -114,7 +146,7 @@ export default function Cart() {
         const safeTs = `${dd}-${mm}-${yy}_${HH}${MIN}`; // ej. 15-05-26_1405
         const generatedOrderId = `P${seqStr}_${safeTs}`;
 
-        const orderRef = doc(db, "pedidos", generatedOrderId);
+        const orderRef = doc(db, FIRESTORE_COLLECTIONS.PEDIDOS, generatedOrderId);
         const orderPayload = {
           orderId: generatedOrderId,
           numeroPedido: generatedOrderId,
@@ -218,7 +250,7 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
   };
 
   return (
-    <div style={{ padding: 16, paddingBottom: 120, background: "#f5f5f5", minHeight: "100vh", fontFamily: "sans-serif", color: "black" }}>
+    <div style={{ padding: 16, paddingBottom: 120, background: "#FFC72C", minHeight: "100vh", fontFamily: "sans-serif", color: "black" }}>
 
       <h2 style={{ fontSize: 24, fontWeight: "bold", marginBottom: 18 }}>🛒 Tu pedido</h2>
 
@@ -242,33 +274,11 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
             <b>{item.name}</b>
             <p>${item.price} x {item.qty}</p>
 
-            <button
-            onClick={() => decreaseFromCart(item.id)}
-            style={{
-              background: "#000000",
-              color: "white",
-              border: "none",
-              padding: "8px 12px",
-              borderRadius: 8,
-              cursor: "pointer"
-            }}
-          >
-            -
-          </button>
-          <span style={{ fontWeight: "bold", minWidth: 26, textAlign: "center" }}>{item.qty}</span>
-          <button
-            onClick={() => addToCart(item)}
-            style={{
-              background: "#000000",
-              color: "white",
-              border: "none",
-              padding: "8px 12px",
-              borderRadius: 8,
-              cursor: "pointer"
-            }}
-          >
-            +
-          </button>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
+              <button onClick={() => decreaseFromCart(item.id)}>-</button>
+              <span style={{ fontWeight: "bold", minWidth: 26, textAlign: "center" }}>{item.qty}</span>
+              <button onClick={() => addToCart(item)}>+</button>
+            </div>
           </div>
         </div>
       ))}
@@ -295,17 +305,34 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
       {/* 🏫 ESCUELA */}
       <h3 style={{ fontSize: 18, fontWeight: "bold", marginTop: 20, marginBottom: 10 }}>🏫 Entrega</h3>
 
-      <select
-        value={selectedSchool}
-        onChange={(e) => setSelectedSchool(e.target.value)}
-        style={input}
-      >
-        <option value="">Selecciona escuela</option>
-        {schools.map((s, i) => (
-          <option key={i} value={s.name}>{s.name}</option>
-        ))}
-        <option value="new">+ Agregar nueva</option>
-      </select>
+      {schools.length > 0 ? (
+        <select
+          value={selectedSchool}
+          onChange={(e) => setSelectedSchool(e.target.value)}
+          style={input}
+        >
+          <option value="">Selecciona escuela</option>
+          {schools.map((s, i) => (
+            <option key={i} value={s.name}>{s.name}</option>
+          ))}
+          <option value="new">+ Agregar nueva</option>
+        </select>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setSelectedSchool("new")}
+          style={{
+            ...input,
+            width: "95%",
+            display: "block",
+            textAlign: "left",
+            background: "#fff",
+            cursor: "pointer",
+          }}
+        >
+          + Agregar escuela
+        </button>
+      )}
 
       {/* 📍 DIRECCIÓN AUTOMÁTICA */}
       {selectedSchool && selectedSchool !== "new" && selectedSchoolData && (
@@ -313,7 +340,7 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
           value={selectedSchoolData.address}
           disabled
           style={{
-            width: "100%",
+            width: "95%",
             padding: 10,
             marginBottom: 10,
             borderRadius: 8,
@@ -340,7 +367,15 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
             style={input}
           />
 
-          <button onClick={addSchool} style={btnAdd}>
+          <button
+            onClick={addSchool}
+            disabled={!isNewSchoolValid}
+            style={{
+              ...btnAdd,
+              opacity: isNewSchoolValid ? 1 : 0.6,
+              cursor: isNewSchoolValid ? "pointer" : "not-allowed",
+            }}
+          >
             Guardar escuela
           </button>
         </>
@@ -353,7 +388,7 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
         value={indicaciones}
         onChange={(e) => setIndicaciones(e.target.value)}
         style={{
-          width: "100%",
+          width: "95%",
           padding: 10,
           marginBottom: 10,
           borderRadius: 8,
@@ -380,7 +415,7 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
           onClick={handleWhatsApp}
           disabled={!isFormValid || isSaving}
           style={{
-            width: "100%",
+            width: "95%",
             padding: 14,
             background: isFormValid && !isSaving ? "#000000" : "#ccc",
             color: "white",
@@ -401,7 +436,7 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
 
 // 🎨 estilos
 const input = {
-  width: "100%",
+  width: "95%",
   padding: 10,
   marginBottom: 10,
   borderRadius: 8,
@@ -410,7 +445,7 @@ const input = {
 };
 
 const btnAdd = {
-  width: "100%",
+  width: "95%",
   padding: 10,
   background: "#000000",
   color: "white",
