@@ -14,18 +14,21 @@ export default function Menu() {
       id: 1,
       name: "Lonche Clásico",
       price: 50,
+      description: "Pan suave con jamón, queso y verduras frescas. Ideal para un lunch práctico y delicioso.",
       image: "/images/Lonche_Clasico.jpg"
     },
     {
       id: 2,
       name: "Lonche Saludable",
       price: 75,
+      description: "Preparado con ingredientes integrales, proteína magra y vegetales frescos. Opción equilibrada.",
       image: "/images/Lonche_Saludable.jpg"
     },
     {
       id: 3,
       name: "Lonche Premium",
       price: 100,
+      description: "Combinación gourmet con proteína premium, pan artesanal y toppings especiales.",
       image: "/images/Lonche_Premium.jpg"
     }
   ];
@@ -36,14 +39,12 @@ export default function Menu() {
     return cart.filter(item => item.id === id).length;
   };
 
-  // Estilos base para botones
   const baseButtonStyle = {
     transition: "all 0.2s ease",
     cursor: "pointer",
     fontWeight: "bold"
   };
 
-  // Estilo botón "Agregar"
   const getAddButtonStyle = (id) => ({
     ...baseButtonStyle,
     background: "#000000",
@@ -56,7 +57,6 @@ export default function Menu() {
     transform: pressedButtonId === id ? "scale(0.95)" : activeButtonId === id ? "scale(1.05)" : "scale(1)"
   });
 
-  // Estilo botón "Ir al carrito"
   const getCheckoutButtonStyle = (id) => ({
     ...baseButtonStyle,
     background: pressedButtonId === id ? "linear-gradient(135deg, #1a1a1a, #333333)" : activeButtonId === id ? "linear-gradient(135deg, #1a1a1a, #2a2a2a)" : "linear-gradient(135deg, #000000, #1a1a1a)",
@@ -68,7 +68,6 @@ export default function Menu() {
     transform: pressedButtonId === id ? "scale(0.95)" : activeButtonId === id ? "scale(1.05)" : "scale(1)"
   });
 
-  // Estilo botones +/-
   const getIncrementButtonStyle = (id, type) => {
     const isPressed = pressedButtonId === `${id}-${type}`;
     const isActive = activeButtonId === `${id}-${type}`;
@@ -89,7 +88,6 @@ export default function Menu() {
     };
   };
 
-  // Estilo cantidad
   const getQuantityStyle = {
     fontWeight: "bold",
     fontSize: "18px",
@@ -101,7 +99,6 @@ export default function Menu() {
   return (
     <div style={{ fontFamily: "sans-serif", background: "#DA291C", minHeight: "100vh", borderRadius: "8px" }}>
       
-      {/* Header */}
       <div
         style={{
           background: "#FFFFFF",
@@ -154,14 +151,7 @@ export default function Menu() {
         </div>
       </div>
 
-      {/* Lista */}
-      <div
-        style={{
-          padding: "16px",
-          display: "grid",
-          gap: "16px"
-        }}
-      >
+      <div style={{ padding: "16px", display: "grid", gap: "16px" }}>
         {products.map((p) => (
           <div
             key={p.id}
@@ -177,7 +167,6 @@ export default function Menu() {
             }}
           >
             
-            {/* 🖼️ IMAGEN */}
             <img
               src={p.image}
               alt={p.name}
@@ -189,9 +178,14 @@ export default function Menu() {
               }}
             />
 
-            {/* 📦 INFO */}
             <div style={{ flex: 1 }}>
               <h3>{p.name}</h3>
+
+              {/* ✅ DESCRIPCIÓN (NUEVO) */}
+              <p style={{ fontSize: 13, opacity: 0.8 }}>
+                {p.description}
+              </p>
+
               <p style={{ fontWeight: "bold" }}>${p.price}</p>
 
               {getQuantity(p.id) === 0 ? (

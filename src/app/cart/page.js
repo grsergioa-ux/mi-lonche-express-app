@@ -288,12 +288,13 @@ export default function Cart() {
     setIsSaving(true);
 
     const address = selectedSchoolData?.address || newAddress;
-    const productsForOrder = grouped.map((i) => ({
-      id: i.id,
-      name: i.name,
-      quantity: i.qty,
-      price: i.price
-    }));
+	const productsForOrder = grouped.map((i) => ({
+	id: i.id,
+	name: i.name,
+	quantity: i.qty,
+	price: i.price,
+	description: i.description || ""
+	}));
 
     try {
       const orderId = await runTransaction(db, async (tx) => {
@@ -360,8 +361,11 @@ export default function Cart() {
     const schoolName = selectedSchool === "new" ? newSchool : selectedSchool;
 
     // Construir lista de productos con formato mejorado
-    const productList = grouped
-      .map((item) => `  🥗 ${item.name}\n     Cantidad: x${item.qty} | Precio: $${(item.price * item.qty).toFixed(2)}`)
+const productList = grouped
+.map((item) => 
+` 🥗 ${item.name}
+${item.description ? `📝 ${item.description}\n ` : ""}Cantidad: x${item.qty} | Precio: $${(item.price * item.qty).toFixed(2)}`
+)
       .join("\n\n");
 
     // Obtener dirección
@@ -486,6 +490,10 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
 
           <div style={{ flex: 1 }}>
             <b>{item.name}</b>
+			{item.description && (
+			<p style={{ fontSize: 12, margin: "4px 0" }}>
+			{item.description}
+			</p>)}
             <p>${item.price} x {item.qty}</p>
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, gap: 12 }}>
