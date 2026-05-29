@@ -1,6 +1,6 @@
 "use client";
 import { useCart } from "../context/CartContext";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "../../firebase";
 import {
@@ -12,6 +12,7 @@ import {
   runTransaction,
 } from "firebase/firestore";
 import { FIRESTORE_COLLECTIONS, FIRESTORE_DOCS } from "../../lib/firestoreCollections";
+import WhatsAppConfirmModal from "../components/WhatsAppConfirmModal";
 
 export default function Cart() {
   const { cart, addToCart, decreaseFromCart, clearCart } = useCart();
@@ -23,6 +24,10 @@ export default function Cart() {
   const [wasFormValidBefore, setWasFormValidBefore] = useState(false);
   const [showPulse, setShowPulse] = useState(false);
   const [showCancelConfirmation, setShowCancelConfirmation] = useState(false);
+
+  // 📱 Modal de confirmación WhatsApp
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+  const [whatsappPreviewMessage, setWhatsappPreviewMessage] = useState("");
 
   // 🧾 CLIENTE
   const [name, setName] = useState("");
@@ -354,31 +359,23 @@ export default function Cart() {
     }
   };
 
-  // 📱 ENVIAR POR WHATSAPP
-  const handleWhatsApp = async () => {
-    if (!isFormValid) return;
-
+  // 🛠️ CONSTRUIR MENSAJE WHATSAPP (puro, sin efectos secundarios)
+  const buildWhatsAppMessage = useCallback(() => {
     const schoolName = selectedSchool === "new" ? newSchool : selectedSchool;
-
-    // Construir lista de productos con formato mejorado
-const productList = grouped
-.map((item) => 
-` 🥗 ${item.name}
-${item.description ? `📝 ${item.description}\n ` : ""}Cantidad: x${item.qty} | Precio: $${(item.price * item.qty).toFixed(2)}`
-)
-      .join("\n\n");
-
-    // Obtener dirección
     const address = selectedSchoolData?.address || newAddress;
-
-    // Obtener hora actual
     const hora = new Date().toLocaleTimeString("es-MX", {
       hour: "2-digit",
       minute: "2-digit"
     });
 
-    // Construir mensaje formateado profesional
-    const message = `
+    const productList = grouped
+      .map((item) =>
+`  🥗 ${item.name}
+${item.description ? `  📝 ${item.description}\n  ` : ""}Cantidad: x${item.qty} | Precio: $${(item.price * item.qty).toFixed(2)}`
+      )
+      .join("\n\n");
+
+    return `
 🍱 *MI LONCHE EXPRESS*
 ━━━━━━━━━━━━━━━━━━━━━━
 
@@ -396,15 +393,27 @@ ${item.description ? `📝 ${item.description}\n ` : ""}Cantidad: x${item.qty} |
 
 ${productList}
 
-${indicaciones ? `📝 *Notas especiales:*
-${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${indicaciones ? `📝 *Notas especiales:*\n${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 💰 *TOTAL A PAGAR:* $${total.toFixed(2)}
 ⏰ *Hora del pedido:* ${hora}
 ━━━━━━━━━━━━━━━━━━━
 
 ✅ Gracias por tu pedido. Nos pondremos en contacto pronto.`;
+  }, [selectedSchool, newSchool, selectedSchoolData, newAddress, grouped, name, phone, indicaciones, total]);
 
-    // Codificar el mensaje para URL
+  // 📱 ABRIR MODAL DE CONFIRMACIÓN (nuevo paso intermedio)
+  const handleOpenWhatsAppModal = () => {
+    if (!isFormValid) return;
+    const message = buildWhatsAppMessage();
+    setWhatsappPreviewMessage(message);
+    setShowWhatsAppModal(true);
+  };
+
+  // 🚀 ENVIAR POR WHATSAPP (se ejecuta desde el modal al confirmar)
+  const handleWhatsApp = async () => {
+    if (!isFormValid) return;
+
+    const message = whatsappPreviewMessage || buildWhatsAppMessage();
     const encodedMessage = encodeURIComponent(message);
 
     // Intentar guardar el pedido en Firestore; si falla, no bloquear el envío por WhatsApp
@@ -414,10 +423,13 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
       console.error("Error guardando pedido en Firestore:", err);
     }
 
+    // Cerrar modal antes de redirigir
+    setShowWhatsAppModal(false);
+
     // Abrir WhatsApp con el número del negocio
     window.open(`https://wa.me/5214427817971?text=${encodedMessage}`, "_blank");
 
-    // Reiniciar formulario y carrito como si el cliente accediera por primera vez
+    // Reiniciar formulario y carrito
     setName("");
     setPhone("");
     setIndicaciones("");
@@ -425,6 +437,7 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
     setNewSchool("");
     setNewAddress("");
     setSavedOrderId(null);
+    setWhatsappPreviewMessage("");
     clearCart();
 
     router.push("/menu");
@@ -672,9 +685,9 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
           {getProgressText().text}
         </div>
 
-        {/* BOTÓN WHATSAPP CON DESBLOQUEO PROGRESIVO */}
+        {/* BOTÓN WHATSAPP CON DESBLOQUEO PROGRESIVO → abre modal de confirmación */}
         <button
-          onClick={handleWhatsApp}
+          onClick={handleOpenWhatsAppModal}
           disabled={!isFormValid || isSaving}
           onMouseEnter={() => (isFormValid && !isSaving) && setActiveButtonId("whatsapp")}
           onMouseLeave={() => {
@@ -685,7 +698,7 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
           onMouseUp={() => setPressedButtonId(null)}
           style={getWhatsAppButtonStyle()}
         >
-          {isFormValid && !isSaving ? "📱 Enviar pedido por WhatsApp 🚀" : isSaving ? "Guardando pedido..." : "Completa tus datos para enviar 🚫"}
+          {isFormValid && !isSaving ? "📱 Revisar y enviar por WhatsApp 🚀" : isSaving ? "Guardando pedido..." : "Completa tus datos para enviar 🚫"}
         </button>
       </div>
 
@@ -748,6 +761,19 @@ ${indicaciones}\n` : ""}━━━━━━━━━━━━━━━━━━�
           </div>
         </div>
       )}
+
+      {/* 📱 MODAL DE CONFIRMACIÓN WHATSAPP */}
+      <WhatsAppConfirmModal
+        isOpen={showWhatsAppModal}
+        onClose={() => setShowWhatsAppModal(false)}
+        onConfirm={handleWhatsApp}
+        grouped={grouped}
+        total={total}
+        customerName={name}
+        schoolName={selectedSchool === "new" ? newSchool : selectedSchool}
+        whatsappMessage={whatsappPreviewMessage}
+        isSaving={isSaving}
+      />
 
     </div>
   );
