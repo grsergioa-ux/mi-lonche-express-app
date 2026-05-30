@@ -53,7 +53,7 @@ const formatOrderDay = (fecha) => {
 const getCanalEstadoLabel = (canalEstado) => {
   switch (canalEstado) {
     case "CREATED_WHATSAPP_OPENED":
-      return { emoji: "🟢", text: "Enviado por WhatsApp", bg: "#dcfce7", color: "#15803d" };
+      return { emoji: "⚪️", text: "Confirmar envío por WhatsApp", bg: "#ffffff", color: "#ff0000" };
     default:
       return { emoji: "➖", text: "No definido", bg: "#f3f4f6", color: "#6b7280" };
   }
@@ -340,8 +340,8 @@ export default function AdminPedidos() {
               pedido.estado === "pendiente"
                 ? "#fff3cd"
                 : pedido.estado === "proceso"
-                ? "#cce5ff"
-                : "#d4edda",
+                  ? "#cce5ff"
+                  : "#d4edda",
           }}
         >
           <h3 style={{ margin: 0, fontSize: 18, fontWeight: "bold" }}>Pedido #{pedido.numeroPedido}</h3>
@@ -353,12 +353,12 @@ export default function AdminPedidos() {
             {pedido.estado === "pendiente"
               ? "⚪️ Pendiente"
               : pedido.estado === "proceso"
-              ? "🔵 En proceso"
-              : "✅ Entregado"}
+                ? "🔵 En proceso"
+                : "✅ Entregado"}
           </p>
 
           {/* 📡 Canal WhatsApp */}
-          {(() => {
+          {pedido.estado === "pendiente" && (() => {
             const canal = getCanalEstadoLabel(pedido.canalEstado);
             return (
               <span
