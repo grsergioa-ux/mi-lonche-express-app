@@ -10,6 +10,7 @@ import {
   doc,
   serverTimestamp,
   runTransaction,
+  updateDoc,
 } from "firebase/firestore";
 import { FIRESTORE_COLLECTIONS, FIRESTORE_DOCS } from "../../lib/firestoreCollections";
 import WhatsAppConfirmModal from "../components/WhatsAppConfirmModal";
@@ -344,6 +345,7 @@ export default function Cart() {
           products: productsForOrder,
           total,
           estado: "pendiente",
+          canalEstado: "CREATED_WHATSAPP_OPENED",
           fecha: new Date()
         };
 
@@ -401,7 +403,7 @@ ${indicaciones ? `📝 *Notas especiales:*\n${indicaciones}\n` : ""}━━━━
 ✅ Gracias por tu pedido. Nos pondremos en contacto pronto.`;
   }, [selectedSchool, newSchool, selectedSchoolData, newAddress, grouped, name, phone, indicaciones, total]);
 
-  // 📱 ABRIR MODAL DE CONFIRMACIÓN (nuevo paso intermedio)
+  // 📱 ABRIR MODAL DE CONFIRMACIÓN (solo muestra el modal, sin escribir en Firestore)
   const handleOpenWhatsAppModal = () => {
     if (!isFormValid) return;
     const message = buildWhatsAppMessage();
@@ -416,7 +418,8 @@ ${indicaciones ? `📝 *Notas especiales:*\n${indicaciones}\n` : ""}━━━━
     const message = whatsappPreviewMessage || buildWhatsAppMessage();
     const encodedMessage = encodeURIComponent(message);
 
-    // Intentar guardar el pedido en Firestore; si falla, no bloquear el envío por WhatsApp
+    // ✅ Única escritura en Firestore: crea el pedido con canalEstado: "CREATED_WHATSAPP_OPENED"
+    // El guard en saveOrder() evita duplicados si el usuario presiona múltiples veces
     try {
       await saveOrder();
     } catch (err) {

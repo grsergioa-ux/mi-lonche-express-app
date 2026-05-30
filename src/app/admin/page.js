@@ -49,6 +49,16 @@ const formatOrderDay = (fecha) => {
   });
 };
 
+// 📡 Helper visual para canalEstado
+const getCanalEstadoLabel = (canalEstado) => {
+  switch (canalEstado) {
+    case "CREATED_WHATSAPP_OPENED":
+      return { emoji: "🟢", text: "Enviado por WhatsApp", bg: "#dcfce7", color: "#15803d" };
+    default:
+      return { emoji: "➖", text: "No definido", bg: "#f3f4f6", color: "#6b7280" };
+  }
+};
+
 const buttonCommonStyle = {
   padding: 12,
   borderRadius: 10,
@@ -346,6 +356,28 @@ export default function AdminPedidos() {
               ? "🔵 En proceso"
               : "✅ Entregado"}
           </p>
+
+          {/* 📡 Canal WhatsApp */}
+          {(() => {
+            const canal = getCanalEstadoLabel(pedido.canalEstado);
+            return (
+              <span
+                style={{
+                  display: "inline-block",
+                  marginTop: 4,
+                  marginBottom: 4,
+                  padding: "3px 10px",
+                  borderRadius: 20,
+                  fontSize: 13,
+                  fontWeight: "600",
+                  background: canal.bg,
+                  color: canal.color,
+                }}
+              >
+                {canal.emoji} {canal.text}
+              </span>
+            );
+          })()}
 
           <h3 style={{ margin: "8px 0", fontSize: 18 }}>Total: ${pedido.total}</h3>
 
